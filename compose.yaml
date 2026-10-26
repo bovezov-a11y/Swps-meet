@@ -1,0 +1,52 @@
+# Local development: the backend starts PostgreSQL and Mailpit automatically.
+# Backend in Docker too: docker compose --profile app up --build
+services:
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: meetswps
+      POSTGRES_USER: meetswps
+      POSTGRES_PASSWORD: meetswps
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U meetswps -d meetswps"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  # Catches every email the app sends during development, including verification codes; inbox at http://localhost:8025
+  mailpit:
+    image: axllent/mailpit:latest
+    ports:
+      - "1025:1025"
+      - "8025:8025"
+
+  backend:
+    profiles: [app]
+    build: ./backend
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/meetswps
+      SPRING_DATASOURCE_USERNAME: meetswps
+      SPRING_DATASOURCE_PASSWORD: meetswps
+      SPRING_DOCKER_COMPOSE_ENABLED: "false"
+      # Optional locally; without it the backend uses a random key per start.
+      JWT_SECRET: ${JWT_SECRET:-}
+      STORAGE_DIR: /app/data/uploads
+      MAIL_HOST: mailpit
+      ADMIN_EMAILS: ${ADMIN_EMAILS:-}
+    volumes:
+      - uploads:/app/data/uploads
+    depends_on:
+      postgres:
+        condition: service_healthy
+      mailpit:
+        condition: service_started
+
+volumes:
+  postgres-data:
+  uploads:

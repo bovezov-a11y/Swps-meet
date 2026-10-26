@@ -1,0 +1,131 @@
+package com.meetswps.auth;
+
+import com.meetswps.auth.AuthDtos.AuthResponse;
+import com.meetswps.auth.AuthDtos.LoginRequest;
+import com.meetswps.auth.AuthDtos.RegisterRequest;
+import com.meetswps.auth.AuthDtos.RegistrationResponse;
+import com.meetswps.common.CodedException;
+import com.meetswps.common.ConflictException;
+import com.meetswps.common.InvalidRequestException;
+import com.meetswps.user.Role;
+import com.meetswps.user.RoleAssignment;
+import com.meetswps.user.User;
+import com.meetswps.user.UserRepository;
+import com.meetswps.user.UserResponse;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.Locale;
+import java.util.Optional;
+
+@Service
+class AuthService {
+
+    private final UserRepository users;
+    private final PasswordEncoder passwordEncoder;
+    private final AuthenticationManager authenticationManager;
+    private final TokenService tokenService;
+    private final EmailVerificationService verification;
+    private final RegistrationProperties registration;
+    private final String privacyPolicyVersion;
+    private final RoleAssignment roles;
+
+    AuthService(UserRepository users, PasswordEncoder passwordEncoder, AuthenticationManager authenticationManager,
+                TokenService tokenService, EmailVerificationService verification, RegistrationProperties registration,
+                @Value("${app.privacy.policy-version}") String privacyPolicyVersion, RoleAssignment roles) {
+        this.users = users;
+        this.passwordEncoder = passwordEncoder;
+        this.authenticationManager = authenticationManager;
+        this.tokenService = tokenService;
+        this.verification = verification;
+        this.registration = registration;
+        this.privacyPolicyVersion = privacyPolicyVersion;
+        this.roles = roles;
+    }
+
+    @Transactional
+    RegistrationResponse register(RegisterRequest request) {
+        String email = normalizeEmail(request.email());
+        if (!isUniversityEmail(email)) {
+            throw new InvalidRequestException("email",
+                    "use your SWPS university email (@" + registration.allowedEmailDomains().getFirst() + ")");
+        }
+        if (!privacyPolicyVersion.equals(request.privacyPolicyVersion())) {
+            // The app was opened before the policy changed; the user must read and accept the current one.
+            throw new InvalidRequestException("privacyPolicyVersion",
+                    "the privacy policy has been updated; update the app and accept the current version");
+        }
+        Optional<User> existing = users.findByEmail(email);
+        if (existing.isPresent()) {
+            if (existing.get().isEmailVerified()) {
+                throw new ConflictException("An account with this email already exists");
+            }
+            // Someone registered but never confirmed: send them a fresh code instead of an error.
+            verification.sendCode(existing.get());
+            return new RegistrationResponse(email);
+        }
+        User user = new User(email, passwordEncoder.encode(request.password()), request.firstName().strip(),
+                Role.STUDENT);
+        user.acceptPrivacyPolicy(privacyPolicyVersion);
+        users.save(user);
+        verification.sendCode(user);
+        return new RegistrationResponse(email);
+    }
+
+    // Not read-only: a wrong code increments the attempt counter, which must be saved even though the call fails.
+    @Transactional(noRollbackFor = CodedException.class)
+    AuthResponse verifyEmail(String email, String code) {
+        User user = users.findByEmail(normalizeEmail(email))
+                .filter(candidate -> !candidate.isEmailVerified())
+                .filter(candidate -> verification.check(candidate, code))
+                .orElseThrow(() -> new CodedException(HttpStatus.BAD_REQUEST, "INVALID_VERIFICATION_CODE",
+                        "This code is wrong or has expired. Check the email or request a new code."));
+        user.markEmailVerified();
+        return toResponse(user);
+    }
+
+    /** Always succeeds, so the endpoint cannot be used to find out which addresses have accounts. */
+    @Transactional
+    void resendVerification(String email) {
+        users.findByEmail(normalizeEmail(email))
+                .filter(user -> !user.isEmailVerified())
+                .ifPresent(verification::sendCode);
+    }
+
+    @Transactional
+    AuthResponse login(LoginRequest request) {
+        String email = normalizeEmail(request.email());
+        // The password is checked first, so the account state is only revealed to the account owner.
+        authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(email, request.password()));
+        User user = users.findByEmail(email).orElseThrow();
+        if (user.isBanned()) {
+            throw new CodedException(HttpStatus.FORBIDDEN, "ACCOUNT_SUSPENDED",
+                    "This account has been suspended after reports from other students.");
+        }
+        if (!user.isEmailVerified()) {
+            throw new CodedException(HttpStatus.FORBIDDEN, "EMAIL_NOT_VERIFIED",
+                    "Confirm your email address first. We sent you a code when you registered.");
+        }
+        return toResponse(user);
+    }
+
+    private boolean isUniversityEmail(String email) {
+        String domain = email.substring(email.lastIndexOf('@') + 1);
+        return registration.allowedEmailDomains().stream().anyMatch(domain::equalsIgnoreCase);
+    }
+
+    private AuthResponse toResponse(User user) {
+        roles.apply(user);
+        TokenService.IssuedToken token = tokenService.issue(user);
+        return new AuthResponse(token.value(), token.expiresAt(), UserResponse.from(user));
+    }
+
+    static String normalizeEmail(String email) {
+        return email.strip().toLowerCase(Locale.ROOT);
+    }
+}

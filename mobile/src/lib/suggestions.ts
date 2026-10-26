@@ -1,0 +1,50 @@
+/** Shortcuts only: students can type any program, interest or language. */
+export const PROGRAM_SUGGESTIONS = [
+  'Psychology',
+  'Law',
+  'Management',
+  'Computer Science',
+  'Graphic Design',
+  'Interior Design',
+  'Journalism and Social Communication',
+  'Cognitive Science',
+  'Sociology',
+  'Criminology',
+  'English Philology',
+  'Cultural Studies',
+  'Political Science',
+  'Pedagogy',
+];
+
+export const INTEREST_SUGGESTIONS = [
+  'Gym',
+  'Running',
+  'Football',
+  'Volleyball',
+  'Climbing',
+  'Music',
+  'Concerts',
+  'Gaming',
+  'Movies',
+  'Books',
+  'Travel',
+  'Photography',
+  'Cooking',
+  'Art',
+  'Board games',
+  'Parties',
+  'Coffee',
+  'Volunteering',
+];
+
+export const LANGUAGE_SUGGESTIONS = [
+  'Polish',
+  'English',
+  'Ukrainian',
+  'Turkish',
+  'German',
+  'Spanish',
+  'Russian',
+  'French',
+  'Italian',
+];
