@@ -1,0 +1,48 @@
+name: Android APK
+
+# Builds an installable APK for trying the app on an Android emulator or phone without an Expo account.
+# Download it from the run's "Artifacts" section.
+on:
+  workflow_dispatch:
+    inputs:
+      api_url:
+        description: Backend URL baked into the app (10.0.2.2 is the computer itself, seen from the Android emulator)
+        default: http://10.0.2.2:8080
+  pull_request:
+    paths:
+      - mobile/**
+      - .github/workflows/android-apk.yml
+
+jobs:
+  apk:
+    name: APK
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: mobile
+    env:
+      EXPO_PUBLIC_API_URL: ${{ inputs.api_url || 'http://10.0.2.2:8080' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: mobile/package-lock.json
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+      - run: npm ci
+      - name: Generate the Android project
+        run: npx expo prebuild --platform android --no-install
+      - name: Allow plain http to a local backend
+        run: sed -i 's|<application |<application android:usesCleartextTraffic="true" |' android/app/src/main/AndroidManifest.xml
+      - name: Build
+        working-directory: mobile/android
+        run: ./gradlew assembleRelease --no-daemon
+      - uses: actions/upload-artifact@v4
+        with:
+          name: meet-swps-apk
+          path: mobile/android/app/build/outputs/apk/release/app-release.apk
+          retention-days: 14
