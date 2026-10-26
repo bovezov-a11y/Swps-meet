@@ -265,9 +265,9 @@ export function ProfileForm({
 
       {has('DATING') ? (
         <View style={{ gap: space.md }}>
-          <T variant="heading">💜 Dating</T>
+          <T variant="heading">💜 Looking for fun</T>
           <T variant="small">
-            Only shown in the dating section, and only to people you could match with.
+            Only shown in the Looking for fun section, and only to people you could match with.
           </T>
           <ChipPicker
             label="I am a"

@@ -63,7 +63,7 @@ class ProfileService {
                 ? EnumSet.noneOf(Gender.class) : EnumSet.copyOf(request.interestedIn());
         if (intents.contains(Intent.DATING)) {
             if (request.gender() == null) {
-                throw new InvalidRequestException("gender", "choose your gender to use the dating section");
+                throw new InvalidRequestException("gender", "choose your gender to use the Looking for fun section");
             }
             if (interestedIn.isEmpty()) {
                 throw new InvalidRequestException("interestedIn", "choose who you would like to meet");

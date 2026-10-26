@@ -10,7 +10,7 @@ go out together or date. Only people with a verified SWPS email can join.
 1. **Sign up with an SWPS email** (`@st.swps.edu.pl` or `@swps.edu.pl`) and type in the 6-digit code from the email.
 2. **Create a profile:** first name, date of birth (18+), campus, program, year, and what you are looking for.
    Optional: photos (up to 3), bio, interests, languages and Instagram.
-3. **Pick your sections:** 💼 Internships, 🤝 Friends, 🎉 Socialising and 💜 Dating. Each one is its own list of
+3. **Pick your sections:** 💼 Internships, 🤝 Friends, 🎉 Socialising and 💜 Looking for fun. Each one is its own list of
    students, and you can be in several.
 4. **Say you want to meet someone.** They only find out if they want to meet you too. Then it is a match: you can
    chat and see each other's Instagram.
@@ -19,8 +19,8 @@ go out together or date. Only people with a verified SWPS email can join.
 
 - Others see your first name and age, never your surname, email or date of birth.
 - You only appear in sections you chose, to students who chose them too.
-- The dating section is only visible to students in it, and only to people whose preferences fit yours both ways.
-  Internship and dating answers are deleted when you leave that section.
+- The Looking for fun section is only visible to students in it, and only to people whose preferences fit yours both ways.
+  Internship and Looking for fun answers are deleted when you leave that section.
 - Instagram is shown to matches only.
 - Block or report anyone. Reporting also blocks. A profile reported by 3 students is hidden until a moderator
   reviews it; moderators can restore it or suspend the account (which logs it out immediately).

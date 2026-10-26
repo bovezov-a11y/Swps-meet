@@ -12,7 +12,7 @@ export const PRIVACY_POLICY: { heading: string; text: string }[] = [
   },
   {
     heading: 'Who sees what',
-    text: 'Other students only see you in sections you have both chosen. They see your first name and age, never your surname, email or date of birth. Your Instagram username is only shown to people you match with. The dating section is only visible to other students in it, and only to people whose preferences fit yours. Nobody is told when you like, unmatch, block or report them.',
+    text: 'Other students only see you in sections you have both chosen. They see your first name and age, never your surname, email or date of birth. Your Instagram username is only shown to people you match with. The Looking for fun section is only visible to other students in it, and only to people whose preferences fit yours. Nobody is told when you like, unmatch, block or report them.',
   },
   {
     heading: 'Safety and moderation',

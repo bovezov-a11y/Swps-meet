@@ -9,9 +9,9 @@ export const intentLabels: Record<Intent, { title: string; emoji: string; descri
   FRIENDS: { title: 'Friends', emoji: '🤝', description: 'Meet people to study, hang out and grab coffee with.' },
   SOCIAL: { title: 'Socialising', emoji: '🎉', description: 'Parties, events, sports and going out together.' },
   DATING: {
-    title: 'Dating',
+    title: 'Looking for fun',
     emoji: '💜',
-    description: 'Only other students in the dating section can see you here.',
+    description: 'Only other students in this section can see you here.',
   },
 };
 
