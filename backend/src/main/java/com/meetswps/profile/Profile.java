@@ -72,14 +72,6 @@ public class Profile {
     @Column(length = 100)
     private String workplace;
 
-    @Enumerated(EnumType.STRING)
-    @Column(length = 20)
-    private Gender gender;
-
-    @JdbcTypeCode(SqlTypes.ARRAY)
-    @Column(name = "interested_in", nullable = false, length = 20)
-    private List<String> interestedIn = new ArrayList<>();
-
     @Column(nullable = false)
     private boolean hidden;
 
@@ -96,8 +88,7 @@ public class Profile {
     /** Replaces every editable field at once; the caller has validated the combination. */
     void update(LocalDate birthDate, Campus campus, String program, int studyYear, DegreeLevel degreeLevel, String bio,
                 List<String> interests, List<String> languages, String instagram, Set<Intent> intents,
-                InternshipRole internshipRole, String industry, String workplace, Gender gender,
-                Set<Gender> interestedIn) {
+                InternshipRole internshipRole, String industry, String workplace) {
         this.birthDate = birthDate;
         this.campus = campus;
         this.program = program;
@@ -113,9 +104,6 @@ public class Profile {
         this.internshipRole = internship ? internshipRole : null;
         this.industry = internship ? industry : null;
         this.workplace = internship ? workplace : null;
-        boolean dating = intents.contains(Intent.DATING);
-        this.gender = dating ? gender : null;
-        this.interestedIn = dating ? names(interestedIn) : new ArrayList<>();
         this.updatedAt = Instant.now();
     }
 
@@ -179,16 +167,6 @@ public class Profile {
 
     public String getWorkplace() {
         return workplace;
-    }
-
-    public Gender getGender() {
-        return gender;
-    }
-
-    public Set<Gender> getInterestedIn() {
-        Set<Gender> result = EnumSet.noneOf(Gender.class);
-        interestedIn.forEach(name -> result.add(Gender.valueOf(name)));
-        return result;
     }
 
     public boolean isHidden() {

@@ -11,6 +11,7 @@ import { campusLabels, intentLabels, studyLine } from '@/lib/labels';
 import {
   useDeleteAccount,
   useDeletePhoto,
+  useExportData,
   useMakeMainPhoto,
   useMyProfile,
   useUploadPhoto,
@@ -27,6 +28,7 @@ export default function MeScreen() {
   const deletePhoto = useDeletePhoto();
   const makeMain = useMakeMainPhoto();
   const deleteAccount = useDeleteAccount();
+  const exportData = useExportData();
   const [deleting, setDeleting] = useState(false);
   const [password, setPassword] = useState('');
 
@@ -109,6 +111,13 @@ export default function MeScreen() {
       <Button title="Edit profile" variant="secondary" onPress={() => router.push('/edit-profile')} />
       <Button title="Blocked students" variant="secondary" onPress={() => router.push('/blocked')} />
       <Button title="Privacy policy" variant="secondary" onPress={() => router.push('/privacy')} />
+      <Button
+        title="Download my data"
+        variant="secondary"
+        loading={exportData.isPending}
+        onPress={() => exportData.mutate()}
+      />
+      {exportData.error instanceof ApiError ? <T variant="error">{exportData.error.summary}</T> : null}
       <Button title="Log out" variant="secondary" onPress={() => void signOut()} />
 
       {deleting ? (

@@ -5,7 +5,6 @@ import { ApiError } from '@/lib/api';
 import {
   campusLabels,
   degreeLabels,
-  genderLabels,
   intentLabels,
   internshipRoleLabels,
 } from '@/lib/labels';
@@ -14,7 +13,6 @@ import { radius, space, useColors } from '@/lib/theme';
 import {
   CAMPUSES,
   DEGREE_LEVELS,
-  GENDERS,
   INTENTS,
   INTERNSHIP_ROLES,
   type Intent,
@@ -44,8 +42,6 @@ export function emptyProfile(firstName: string): ProfileInput {
     internshipRole: null,
     industry: '',
     workplace: '',
-    gender: null,
-    interestedIn: [],
   };
 }
 
@@ -130,8 +126,6 @@ export function ProfileForm({
     if (index === 2) {
       if (form.intents.length === 0) return 'Choose at least one thing you are looking for.';
       if (has('INTERNSHIP') && !form.internshipRole) return 'Tell others how you are involved in internships.';
-      if (has('DATING') && !form.gender) return 'Choose your gender for the dating section.';
-      if (has('DATING') && form.interestedIn.length === 0) return 'Choose who you would like to meet.';
     }
     return null;
   }
@@ -260,31 +254,6 @@ export function ProfileForm({
               maxLength={100}
             />
           ) : null}
-        </View>
-      ) : null}
-
-      {has('DATING') ? (
-        <View style={{ gap: space.md }}>
-          <T variant="heading">💜 Looking for fun</T>
-          <T variant="small">
-            Only shown in the Looking for fun section, and only to people you could match with.
-          </T>
-          <ChipPicker
-            label="I am a"
-            options={GENDERS}
-            labels={genderLabels}
-            value={form.gender}
-            onChange={(v) => set('gender', v)}
-            error={serverErrors.gender}
-          />
-          <ChipPicker
-            label="I'd like to meet"
-            options={GENDERS}
-            labels={genderLabels}
-            value={form.interestedIn}
-            onChange={(v) => set('interestedIn', toggle(form.interestedIn, v))}
-            error={serverErrors.interestedIn}
-          />
         </View>
       ) : null}
     </View>,

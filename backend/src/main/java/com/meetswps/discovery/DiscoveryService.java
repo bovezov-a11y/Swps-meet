@@ -6,7 +6,6 @@ import com.meetswps.connection.ProfileCard;
 import com.meetswps.connection.ProfileCards;
 import com.meetswps.profile.Audience;
 import com.meetswps.profile.Campus;
-import com.meetswps.profile.Gender;
 import com.meetswps.profile.Intent;
 import com.meetswps.profile.Profile;
 import com.meetswps.profile.ProfileRepository;
@@ -61,11 +60,6 @@ class DiscoveryService {
         Map<String, Object> params = new HashMap<>();
         params.put("viewer", viewerId);
         params.put("intent", intent.name());
-        if (intent == Intent.DATING) {
-            sql.append(" and :gender = any(p.interested_in) and p.gender in (:interestedIn)");
-            params.put("gender", viewer.getGender().name());
-            params.put("interestedIn", viewer.getInterestedIn().stream().map(Gender::name).toList());
-        }
         if (filters.campus() != null) {
             sql.append(" and p.campus = :campus");
             params.put("campus", filters.campus().name());

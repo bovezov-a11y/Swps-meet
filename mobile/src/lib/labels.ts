@@ -1,4 +1,4 @@
-import type { Campus, DegreeLevel, Gender, Intent, InternshipRole, ReportReason } from './types';
+import type { Campus, DegreeLevel, Intent, InternshipRole, ReportReason } from './types';
 
 export const intentLabels: Record<Intent, { title: string; emoji: string; description: string }> = {
   INTERNSHIP: {
@@ -8,11 +8,6 @@ export const intentLabels: Record<Intent, { title: string; emoji: string; descri
   },
   FRIENDS: { title: 'Friends', emoji: '🤝', description: 'Meet people to study, hang out and grab coffee with.' },
   SOCIAL: { title: 'Socialising', emoji: '🎉', description: 'Parties, events, sports and going out together.' },
-  DATING: {
-    title: 'Looking for fun',
-    emoji: '💜',
-    description: 'Only other students in this section can see you here.',
-  },
 };
 
 export const campusLabels: Record<Campus, string> = {
@@ -28,12 +23,6 @@ export const degreeLabels: Record<DegreeLevel, string> = {
   MASTER: "Master's",
   UNIFORM_MASTER: 'Uniform master’s',
   PHD: 'PhD',
-};
-
-export const genderLabels: Record<Gender, string> = {
-  WOMAN: 'Woman',
-  MAN: 'Man',
-  NON_BINARY: 'Non-binary',
 };
 
 export const internshipRoleLabels: Record<InternshipRole, string> = {

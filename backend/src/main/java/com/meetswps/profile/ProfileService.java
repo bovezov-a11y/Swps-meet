@@ -59,16 +59,6 @@ class ProfileService {
             throw new InvalidRequestException("internshipRole",
                     "tell others whether you are looking for an internship or can help with one");
         }
-        Set<Gender> interestedIn = request.interestedIn() == null || request.interestedIn().isEmpty()
-                ? EnumSet.noneOf(Gender.class) : EnumSet.copyOf(request.interestedIn());
-        if (intents.contains(Intent.DATING)) {
-            if (request.gender() == null) {
-                throw new InvalidRequestException("gender", "choose your gender to use the Looking for fun section");
-            }
-            if (interestedIn.isEmpty()) {
-                throw new InvalidRequestException("interestedIn", "choose who you would like to meet");
-            }
-        }
 
         User user = user(userId);
         user.rename(request.firstName().strip());
@@ -76,8 +66,7 @@ class ProfileService {
         profile.update(request.birthDate(), request.campus(), request.program().strip(), request.studyYear(),
                 request.degreeLevel(), blankToNull(request.bio()), tags(request.interests()),
                 tags(request.languages()), instagramUsername(request.instagram()), intents,
-                request.internshipRole(), blankToNull(request.industry()), blankToNull(request.workplace()),
-                request.gender(), interestedIn);
+                request.internshipRole(), blankToNull(request.industry()), blankToNull(request.workplace()));
         profiles.save(profile);
         return toResponse(user, profile);
     }
@@ -118,6 +107,6 @@ class ProfileService {
         return new MyProfileResponse(user.getId(), user.getFirstName(), p.getBirthDate(), p.getAge(), p.getCampus(),
                 p.getProgram(), p.getStudyYear(), p.getDegreeLevel(), p.getBio(), p.getInterests(), p.getLanguages(),
                 p.getInstagram(), p.getIntents(), p.getInternshipRole(), p.getIndustry(), p.getWorkplace(),
-                p.getGender(), p.getInterestedIn(), p.isHidden(), photoList);
+                p.isHidden(), photoList);
     }
 }

@@ -33,22 +33,7 @@ class DiscoveryTest extends ApiTest {
     void aSectionMustBeChosenBeforeBrowsingIt() {
         TestUser viewer = student(uniqueProgram(), "[\"FRIENDS\"]");
 
-        assertThat(get(viewer, "/api/discover?intent=DATING")).hasStatus(HttpStatus.BAD_REQUEST);
-    }
-
-    @Test
-    void datingShowsOnlyMutuallyCompatibleStudents() {
-        String program = uniqueProgram();
-        TestUser woman = dater(program, "WOMAN", "[\"MAN\"]");
-        TestUser man = dater(program, "MAN", "[\"WOMAN\"]");
-        dater(program, "MAN", "[\"MAN\"]");
-        dater(program, "WOMAN", "[\"MAN\"]");
-
-        assertThat(discover(woman, "DATING", program)).bodyJson().extractingPath("$[*].userId").asArray()
-                .containsExactly(man.id());
-        // In the friends section everyone is listed, but the shared sections never reveal dating to others.
-        assertThat(discover(woman, "FRIENDS", program)).bodyJson().extractingPath("$[*].sharedIntents").asArray()
-                .hasSize(3);
+        assertThat(get(viewer, "/api/discover?intent=SOCIAL")).hasStatus(HttpStatus.BAD_REQUEST);
     }
 
     @Test

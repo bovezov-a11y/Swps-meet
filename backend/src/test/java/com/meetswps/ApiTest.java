@@ -61,7 +61,7 @@ public abstract class ApiTest {
         return mvc.post().uri("/api/auth/register")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("""
-                        {"email": "%s", "password": "%s", "firstName": "Ola", "privacyPolicyVersion": "1.0"}
+                        {"email": "%s", "password": "%s", "firstName": "Ola", "privacyPolicyVersion": "1.1"}
                         """.formatted(email, PASSWORD))
                 .exchange();
     }
@@ -120,18 +120,7 @@ public abstract class ApiTest {
     /** A student with a finished profile in the given sections, studying {@code program}. */
     protected TestUser student(String program, String intentsJson) {
         TestUser user = registerUser();
-        MvcTestResult result = saveProfile(user, profileJson(program, intentsJson, null, null));
-        if (result.getResponse().getStatus() != 200) {
-            throw new AssertionError("Profile not saved: " + body(result));
-        }
-        return user;
-    }
-
-    /** A student in the dating section with the given gender, interested in {@code interestedInJson}. */
-    protected TestUser dater(String program, String gender, String interestedInJson) {
-        TestUser user = registerUser();
-        MvcTestResult result = saveProfile(user, profileJson(program, "[\"DATING\", \"FRIENDS\"]", gender,
-                interestedInJson));
+        MvcTestResult result = saveProfile(user, profileJson(program, intentsJson));
         if (result.getResponse().getStatus() != 200) {
             throw new AssertionError("Profile not saved: " + body(result));
         }
@@ -142,14 +131,13 @@ public abstract class ApiTest {
         return put(user, "/api/profile", json);
     }
 
-    protected static String profileJson(String program, String intentsJson, String gender, String interestedInJson) {
+    protected static String profileJson(String program, String intentsJson) {
         return """
                 {"firstName": "Ola", "birthDate": "%s", "campus": "WARSAW", "program": "%s", "studyYear": 2,
                  "degreeLevel": "BACHELOR", "bio": "Hi!", "interests": ["Climbing", "Jazz"], "languages": ["Polish"],
                  "instagram": "https://www.instagram.com/ola.k/", "intents": %s, "internshipRole": "LOOKING",
-                 "industry": "Marketing", "gender": %s, "interestedIn": %s}
-                """.formatted(LocalDate.now().minusYears(21), program, intentsJson,
-                gender == null ? "null" : "\"" + gender + "\"", interestedInJson == null ? "[]" : interestedInJson);
+                 "industry": "Marketing"}
+                """.formatted(LocalDate.now().minusYears(21), program, intentsJson);
     }
 
     protected static String uniqueProgram() {

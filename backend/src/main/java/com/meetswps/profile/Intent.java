@@ -4,6 +4,5 @@ package com.meetswps.profile;
 public enum Intent {
     INTERNSHIP,
     FRIENDS,
-    SOCIAL,
-    DATING
+    SOCIAL
 }

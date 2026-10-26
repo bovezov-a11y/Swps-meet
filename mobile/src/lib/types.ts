@@ -1,6 +1,6 @@
 // Mirrors the backend DTOs. Keep in sync with backend/src/main/java/com/meetswps.
 
-export const INTENTS = ['INTERNSHIP', 'FRIENDS', 'SOCIAL', 'DATING'] as const;
+export const INTENTS = ['INTERNSHIP', 'FRIENDS', 'SOCIAL'] as const;
 export type Intent = (typeof INTENTS)[number];
 
 export const CAMPUSES = ['WARSAW', 'WROCLAW', 'POZNAN', 'SOPOT', 'KATOWICE'] as const;
@@ -8,9 +8,6 @@ export type Campus = (typeof CAMPUSES)[number];
 
 export const DEGREE_LEVELS = ['BACHELOR', 'MASTER', 'UNIFORM_MASTER', 'PHD'] as const;
 export type DegreeLevel = (typeof DEGREE_LEVELS)[number];
-
-export const GENDERS = ['WOMAN', 'MAN', 'NON_BINARY'] as const;
-export type Gender = (typeof GENDERS)[number];
 
 export const INTERNSHIP_ROLES = ['LOOKING', 'OFFERING'] as const;
 export type InternshipRole = (typeof INTERNSHIP_ROLES)[number];
@@ -54,8 +51,6 @@ export type ProfileInput = {
   internshipRole: InternshipRole | null;
   industry: string;
   workplace: string;
-  gender: Gender | null;
-  interestedIn: Gender[];
 };
 
 export type MyProfile = Omit<ProfileInput, 'bio' | 'instagram' | 'industry' | 'workplace'> & {
