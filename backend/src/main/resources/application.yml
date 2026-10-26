@@ -41,7 +41,7 @@ app:
   privacy:
     # Version of the privacy policy users accept at sign-up. Change it together with
     # mobile/src/content/privacy-policy.ts whenever the policy text changes.
-    policy-version: "1.0"
+    policy-version: "1.1"
   roles:
     # Comma-separated addresses that get the admin role (moderator management).
     admin-emails: ${ADMIN_EMAILS:}

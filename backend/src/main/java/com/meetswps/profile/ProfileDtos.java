@@ -32,9 +32,7 @@ public final class ProfileDtos {
             @NotEmpty(message = "choose at least one thing you are looking for") Set<@NotNull Intent> intents,
             InternshipRole internshipRole,
             @Size(max = 100) String industry,
-            @Size(max = 100) String workplace,
-            Gender gender,
-            Set<@NotNull Gender> interestedIn) {
+            @Size(max = 100) String workplace) {
     }
 
     public record PhotoResponse(UUID id, int position) {
@@ -48,8 +46,8 @@ public final class ProfileDtos {
     record MyProfileResponse(UUID userId, String firstName, LocalDate birthDate, int age, Campus campus, String program,
                              int studyYear, DegreeLevel degreeLevel, String bio, List<String> interests,
                              List<String> languages, String instagram, Set<Intent> intents,
-                             InternshipRole internshipRole, String industry, String workplace, Gender gender,
-                             Set<Gender> interestedIn, boolean hidden, List<PhotoResponse> photos) {
+                             InternshipRole internshipRole, String industry, String workplace, boolean hidden,
+                             List<PhotoResponse> photos) {
     }
 
     record ReorderPhotosRequest(@NotEmpty List<@NotNull UUID> photoIds) {

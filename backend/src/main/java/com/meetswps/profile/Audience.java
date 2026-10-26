@@ -12,9 +12,8 @@ import java.util.Set;
 import java.util.UUID;
 
 /**
- * Decides who may see whom. Students only see each other in sections they have both chosen, and the dating section
- * additionally requires that each is the gender the other wants to meet. Blocks, reports and bans hide a student
- * from everyone affected.
+ * Decides who may see whom. Students only see each other in sections they have both chosen. Blocks, reports and bans
+ * hide a student from everyone affected.
  */
 @Component
 public class Audience {
@@ -36,15 +35,7 @@ public class Audience {
         Set<Intent> shared = EnumSet.noneOf(Intent.class);
         shared.addAll(viewer.getIntents());
         shared.retainAll(target.getIntents());
-        if (shared.contains(Intent.DATING) && !datingCompatible(viewer, target)) {
-            shared.remove(Intent.DATING);
-        }
         return shared;
-    }
-
-    static boolean datingCompatible(Profile a, Profile b) {
-        return a.getGender() != null && b.getGender() != null
-                && b.getInterestedIn().contains(a.getGender()) && a.getInterestedIn().contains(b.getGender());
     }
 
     /**

@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Platform } from 'react-native';
 
 import { api } from './api';
+import { saveDataExport } from './data-export';
 import type {
   Account,
   BlockedUser,
@@ -183,6 +184,16 @@ export function useMakeMainPhoto() {
     mutationFn: (photoIds: string[]) =>
       api<Photo[]>('/api/profile/photos/order', { method: 'PUT', body: { photoIds } }),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['profile'] }),
+  });
+}
+
+/** A copy of everything stored about the student (GDPR right of access), saved as a JSON file. */
+export function useExportData() {
+  return useMutation({
+    mutationFn: async () => {
+      const data = await api<unknown>('/api/account/export');
+      await saveDataExport(JSON.stringify(data, null, 2));
+    },
   });
 }
 

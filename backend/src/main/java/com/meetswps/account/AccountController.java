@@ -12,7 +12,10 @@ import com.meetswps.user.UserRepository;
 import com.meetswps.user.UserResponse;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -31,14 +34,16 @@ class AccountController {
     private final PhotoRepository photos;
     private final FileStorage storage;
     private final PasswordEncoder passwordEncoder;
+    private final DataExport dataExport;
 
     AccountController(UserRepository users, ProfileRepository profiles, PhotoRepository photos, FileStorage storage,
-                      PasswordEncoder passwordEncoder) {
+                      PasswordEncoder passwordEncoder, DataExport dataExport) {
         this.users = users;
         this.profiles = profiles;
         this.photos = photos;
         this.storage = storage;
         this.passwordEncoder = passwordEncoder;
+        this.dataExport = dataExport;
     }
 
     /** The account, and whether onboarding is finished so the app knows which screen to open. */
@@ -47,6 +52,16 @@ class AccountController {
     AccountResponse account(CurrentUser currentUser) {
         User user = users.findById(currentUser.id()).orElseThrow(() -> new NotFoundException("User not found"));
         return new AccountResponse(UserResponse.from(user), profiles.existsById(user.getId()));
+    }
+
+    /** A copy of everything stored about the student (GDPR right of access). Photos are listed, not embedded. */
+    @GetMapping("/api/account/export")
+    @Transactional(readOnly = true)
+    ResponseEntity<String> export(CurrentUser currentUser) {
+        return ResponseEntity.ok()
+                .contentType(MediaType.APPLICATION_JSON)
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"meet-swps-data.json\"")
+                .body(dataExport.json(currentUser.id()));
     }
 
     /**
