@@ -1,0 +1,153 @@
+package com.meetswps.config;
+
+import com.meetswps.user.UserRepository;
+import com.nimbusds.jose.jwk.source.ImmutableSecret;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.ProviderManager;
+import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
+import org.springframework.security.config.Customizer;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.factory.PasswordEncoderFactories;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.oauth2.core.DelegatingOAuth2TokenValidator;
+import org.springframework.security.oauth2.core.OAuth2Error;
+import org.springframework.security.oauth2.core.OAuth2TokenValidator;
+import org.springframework.security.oauth2.core.OAuth2TokenValidatorResult;
+import org.springframework.security.oauth2.jose.jws.MacAlgorithm;
+import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.security.oauth2.jwt.JwtDecoder;
+import org.springframework.security.oauth2.jwt.JwtEncoder;
+import org.springframework.security.oauth2.jwt.JwtValidators;
+import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
+import org.springframework.security.oauth2.jwt.NimbusJwtEncoder;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
+import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
+import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+
+import javax.crypto.SecretKey;
+import javax.crypto.spec.SecretKeySpec;
+import java.security.SecureRandom;
+import java.util.Base64;
+import java.util.List;
+import java.util.UUID;
+
+@Configuration
+@EnableConfigurationProperties(JwtProperties.class)
+class SecurityConfig {
+
+    private static final Logger log = LoggerFactory.getLogger(SecurityConfig.class);
+
+    @Bean
+    SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        return http
+                // Stateless API authenticated with bearer tokens, so there is no session cookie to protect against CSRF.
+                .csrf(csrf -> csrf.disable())
+                .cors(Customizer.withDefaults())
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers(HttpMethod.POST, "/api/auth/register", "/api/auth/login", "/api/auth/verify-email",
+                                "/api/auth/resend-verification").permitAll()
+                        .requestMatchers("/api/moderation/**").hasAnyRole("MODERATOR", "ADMIN")
+                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                        .requestMatchers("/error", "/actuator/health", "/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
+                        .anyRequest().authenticated())
+                .oauth2ResourceServer(oauth2 -> oauth2.jwt(jwt -> jwt.jwtAuthenticationConverter(jwtAuthenticationConverter())))
+                .build();
+    }
+
+    /**
+     * The phone apps do not need CORS; this only lets the Expo web preview (a browser) call the API during
+     * development.
+     */
+    @Bean
+    CorsConfigurationSource corsConfigurationSource(@Value("${app.cors.allowed-origins:}") List<String> origins) {
+        CorsConfiguration configuration = new CorsConfiguration();
+        configuration.setAllowedOrigins(origins.stream().map(String::strip).filter(o -> !o.isEmpty()).toList());
+        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE"));
+        configuration.setAllowedHeaders(List.of("Authorization", "Content-Type", "Accept"));
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/api/**", configuration);
+        return source;
+    }
+
+    @Bean
+    PasswordEncoder passwordEncoder() {
+        return PasswordEncoderFactories.createDelegatingPasswordEncoder();
+    }
+
+    @Bean
+    UserDetailsService userDetailsService(UserRepository users) {
+        return email -> users.findByEmail(email)
+                .map(user -> org.springframework.security.core.userdetails.User.withUsername(user.getEmail())
+                        .password(user.getPasswordHash())
+                        .roles(user.getRole().name())
+                        .build())
+                .orElseThrow(() -> new UsernameNotFoundException(email));
+    }
+
+    @Bean
+    AuthenticationManager authenticationManager(UserDetailsService userDetailsService, PasswordEncoder passwordEncoder) {
+        var provider = new DaoAuthenticationProvider(userDetailsService);
+        provider.setPasswordEncoder(passwordEncoder);
+        return new ProviderManager(provider);
+    }
+
+    /** Signs access tokens. Without a configured secret a random key is used, which is fine for local development. */
+    @Bean
+    SecretKey jwtSigningKey(JwtProperties properties) {
+        if (properties.secret() == null || properties.secret().isBlank()) {
+            log.warn("JWT_SECRET is not set; using a random signing key, so sessions end when the application restarts. "
+                    + "Set JWT_SECRET in production.");
+            byte[] key = new byte[32];
+            new SecureRandom().nextBytes(key);
+            return new SecretKeySpec(key, "HmacSHA256");
+        }
+        return new SecretKeySpec(Base64.getDecoder().decode(properties.secret()), "HmacSHA256");
+    }
+
+    @Bean
+    JwtEncoder jwtEncoder(SecretKey jwtSigningKey) {
+        return new NimbusJwtEncoder(new ImmutableSecret<>(jwtSigningKey));
+    }
+
+    @Bean
+    JwtDecoder jwtDecoder(SecretKey jwtSigningKey, JwtProperties properties, UserRepository users) {
+        NimbusJwtDecoder decoder = NimbusJwtDecoder.withSecretKey(jwtSigningKey)
+                .macAlgorithm(MacAlgorithm.HS256)
+                .build();
+        decoder.setJwtValidator(new DelegatingOAuth2TokenValidator<>(
+                JwtValidators.createDefaultWithIssuer(properties.issuer()), activeAccount(users)));
+        return decoder;
+    }
+
+    /** Rejects tokens of accounts that were banned or deleted after the token was issued. */
+    private static OAuth2TokenValidator<Jwt> activeAccount(UserRepository users) {
+        OAuth2Error inactive = new OAuth2Error("invalid_token", "The account is no longer active", null);
+        return jwt -> users.findById(UUID.fromString(jwt.getSubject()))
+                .filter(user -> !user.isBanned())
+                .map(user -> OAuth2TokenValidatorResult.success())
+                .orElseGet(() -> OAuth2TokenValidatorResult.failure(inactive));
+    }
+
+    private static JwtAuthenticationConverter jwtAuthenticationConverter() {
+        var authorities = new JwtGrantedAuthoritiesConverter();
+        authorities.setAuthoritiesClaimName("roles");
+        authorities.setAuthorityPrefix("ROLE_");
+        var converter = new JwtAuthenticationConverter();
+        converter.setJwtGrantedAuthoritiesConverter(authorities);
+        return converter;
+    }
+}
