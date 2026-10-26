@@ -14,6 +14,7 @@ go out together or date. Only people with a verified SWPS email can join.
    students, and you can be in several.
 4. **Say you want to meet someone.** They only find out if they want to meet you too. Then it is a match: you can
    chat and see each other's Instagram.
+5. **Get notified** on your phone about new matches and messages; tapping the notification opens the chat.
 
 ### Privacy and safety
 
@@ -57,6 +58,21 @@ npx expo start                # scan the QR code with Expo Go
 To try the moderator tools, start the backend with `ADMIN_EMAILS=you@swps.edu.pl`; that account can appoint
 moderators through `POST /api/admin/moderators`.
 
+### Push notifications
+
+Push notifications do not work in Expo Go; they need a *development build* of the app (your own version of Expo
+Go with Meet SWPS inside). One-time setup:
+
+1. Create a free account at [expo.dev](https://expo.dev/signup).
+2. In `mobile/`: `npx eas-cli@latest login`, then `npx eas-cli@latest init`. This adds the project id to `app.json`.
+3. Android: `npx eas-cli@latest build --profile development --platform android`, then open the link it prints on
+   your phone and install the app. (Push on Android also needs Firebase credentials; EAS walks you through it, see
+   [FCM credentials](https://docs.expo.dev/push-notifications/fcm-credentials/).)
+   iPhone: the same with `--platform ios`, which needs a paid Apple Developer account.
+4. Start the bundler with `npx expo start --dev-client` and open it from the installed app.
+
+Everything else keeps working in Expo Go; the app simply skips notifications there.
+
 ### Tests
 
 ```bash
@@ -76,6 +92,7 @@ Without Docker, point the backend tests at any empty PostgreSQL database with `S
 | `MAIL_HOST`, `MAIL_PORT`, `MAIL_USERNAME`, `MAIL_PASSWORD`, `MAIL_FROM` | SMTP server for verification codes |
 | `STORAGE_DIR`          | Where profile photos are stored (mount a volume in production) |
 | `ADMIN_EMAILS`         | Comma-separated accounts that get the admin role               |
+| `EXPO_ACCESS_TOKEN`    | Only if "enhanced push security" is turned on in the Expo project |
 | `CORS_ALLOWED_ORIGINS` | Browser origins allowed to call the API (only the Expo web preview needs it) |
 
 ## API overview
@@ -89,12 +106,12 @@ Without Docker, point the backend tests at any empty PostgreSQL database with `S
 | `GET /api/profiles/{id}`, `GET /api/photos/{id}` | Another student, as you are allowed to see them |
 | `PUT/DELETE /api/likes/{id}?intent=` | Want to meet / take it back |
 | `GET /api/matches`, `DELETE /api/matches/{id}`, `GET/POST /api/matches/{id}/messages` | Matches and chat |
+| `PUT/DELETE /api/push-tokens` | Register this phone for notifications / stop (on logout) |
 | `PUT/DELETE /api/blocks/{id}`, `GET /api/blocks`, `POST /api/reports` | Safety |
 | `GET /api/moderation/reports`, `POST /api/moderation/users/{id}/restore` or `/ban` | Moderators |
 
 ## Ideas for next steps
 
-- Push notifications for new matches and messages (Expo Notifications)
 - Real-time chat over WebSockets instead of polling
 - Group chats or events per section
 - Polish and Turkish translations

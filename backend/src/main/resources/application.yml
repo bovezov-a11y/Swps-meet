@@ -51,6 +51,11 @@ app:
   cors:
     # Browser origins allowed to call the API: only the Expo web preview during development.
     allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:8081}
+  push:
+    # Expo's push service; the app sends its Expo push token after login.
+    expo-url: https://exp.host/--/api/v2/push/send
+    # Only needed when "enhanced push security" is turned on in the Expo project settings.
+    access-token: ${EXPO_ACCESS_TOKEN:}
   storage:
     # Profile photos. Mount a persistent volume here in production.
     local-dir: ${STORAGE_DIR:./data/uploads}

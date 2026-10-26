@@ -8,6 +8,9 @@ cp .env.example .env.local   # set EXPO_PUBLIC_API_URL to your computer's IP add
 npx expo start               # scan the QR code with Expo Go on your phone
 ```
 
+Push notifications need a development build instead of Expo Go; see "Push notifications" in the
+[root README](../README.md#push-notifications).
+
 | Command             | What it does                    |
 |---------------------|---------------------------------|
 | `npm run lint`      | ESLint                          |

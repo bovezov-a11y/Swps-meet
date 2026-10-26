@@ -2,6 +2,7 @@
   "expo": {
     "name": "Meet SWPS",
     "slug": "meet-swps",
+    "owner": "bayram11s-team",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
@@ -41,11 +42,22 @@
           "photosPermission": "Meet SWPS needs your photos so you can add them to your profile."
         }
       ],
-      "expo-secure-store"
+      "expo-secure-store",
+      [
+        "expo-notifications",
+        {
+          "defaultChannel": "default"
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
+    },
+    "extra": {
+      "eas": {
+        "projectId": "1484fcfc-e873-4b56-9f81-dd32ed6c4ae3"
+      }
     }
   }
 }

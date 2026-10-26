@@ -1,6 +1,15 @@
 import { Stack } from 'expo-router';
+import { useEffect } from 'react';
+
+import { registerForPushNotifications, useOpenTappedNotification } from '@/lib/notifications';
 
 export default function AppLayout() {
+  useOpenTappedNotification();
+
+  useEffect(() => {
+    void registerForPushNotifications();
+  }, []);
+
   return (
     <Stack screenOptions={{ headerBackButtonDisplayMode: 'minimal' }}>
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />

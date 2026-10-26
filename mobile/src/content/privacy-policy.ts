@@ -8,7 +8,7 @@ export const PRIVACY_POLICY: { heading: string; text: string }[] = [
   },
   {
     heading: 'What we store',
-    text: 'Your SWPS email address, a hash of your password, and the profile you fill in: first name, date of birth, campus, program, year, the sections you choose, and optionally a bio, interests, languages, photos and your Instagram username. We also store your likes, matches, messages, blocks and reports.',
+    text: 'Your SWPS email address, a hash of your password, and the profile you fill in: first name, date of birth, campus, program, year, the sections you choose, and optionally a bio, interests, languages, photos and your Instagram username. We also store your likes, matches, messages, blocks and reports, and, if you allow notifications, a push token for your phone.',
   },
   {
     heading: 'Who sees what',
