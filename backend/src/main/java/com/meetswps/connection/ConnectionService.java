@@ -9,6 +9,7 @@ import com.meetswps.profile.Audience;
 import com.meetswps.profile.Intent;
 import com.meetswps.profile.Profile;
 import com.meetswps.profile.ProfileRepository;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Limit;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -31,9 +32,11 @@ class ConnectionService {
     private final Audience audience;
     private final ProfileCards cards;
     private final Connections connections;
+    private final ApplicationEventPublisher events;
 
     ConnectionService(LikeRepository likes, MatchRepository matches, MessageRepository messages,
-                      ProfileRepository profiles, Audience audience, ProfileCards cards, Connections connections) {
+                      ProfileRepository profiles, Audience audience, ProfileCards cards, Connections connections,
+                      ApplicationEventPublisher events) {
         this.likes = likes;
         this.matches = matches;
         this.messages = messages;
@@ -41,6 +44,7 @@ class ConnectionService {
         this.audience = audience;
         this.cards = cards;
         this.connections = connections;
+        this.events = events;
     }
 
     /** Records that the viewer wants to meet the target in one section; a like back makes a match. */
@@ -61,6 +65,7 @@ class ConnectionService {
         }
         if (likes.existsByFromIdAndToIdAndIntent(targetId, viewerId, intent)) {
             Match match = matches.save(new Match(viewerId, targetId, intent));
+            events.publishEvent(new MatchCreated(match.getId(), viewerId, targetId, intent));
             return new LikeResult(true, match.getId());
         }
         return new LikeResult(false, null);
@@ -111,8 +116,10 @@ class ConnectionService {
 
     @Transactional
     MessageResponse send(UUID viewerId, UUID matchId, String body) {
-        activeMatch(viewerId, matchId);
-        return MessageResponse.from(messages.save(new Message(matchId, viewerId, body.strip())), viewerId);
+        Match match = activeMatch(viewerId, matchId);
+        Message message = messages.save(new Message(matchId, viewerId, body.strip()));
+        events.publishEvent(new MessageSent(matchId, viewerId, match.otherThan(viewerId), message.getBody()));
+        return MessageResponse.from(message, viewerId);
     }
 
     private Match activeMatch(UUID viewerId, UUID matchId) {

@@ -2,6 +2,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { createContext, type ReactNode, use, useCallback, useEffect, useMemo, useState } from 'react';
 
 import { api, setApiToken } from './api';
+import { unregisterPushNotifications } from './notifications';
 import { getItem, setItem } from './storage';
 import type { Account, AuthResponse } from './types';
 
@@ -24,6 +25,8 @@ export function SessionProvider({ children }: { children: ReactNode }) {
   const [restored, setRestored] = useState(false);
 
   const signOut = useCallback(async () => {
+    // Needs the session, so it goes first.
+    await unregisterPushNotifications();
     setApiToken(null);
     setToken(null);
     queryClient.clear();

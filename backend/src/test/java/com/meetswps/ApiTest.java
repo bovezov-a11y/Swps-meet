@@ -40,6 +40,9 @@ public abstract class ApiTest {
     @Autowired
     protected TestDoubles.RecordingEmailSender emails;
 
+    @Autowired
+    protected TestDoubles.RecordingPushSender pushes;
+
     protected record TestUser(String id, String email, String token) {
     }
 

@@ -41,7 +41,13 @@
           "photosPermission": "Meet SWPS needs your photos so you can add them to your profile."
         }
       ],
-      "expo-secure-store"
+      "expo-secure-store",
+      [
+        "expo-notifications",
+        {
+          "defaultChannel": "default"
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,
